@@ -1,10 +1,10 @@
 [package]
 name = "git-slides"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
 
 authors = ["Quentin Richert <noreply@richert.co>"]
-description = "Navigate back-and-forth through Git commits like presentation slides."
+description = "Navigate through Git commits like presentation slides."
 license = "GPL-3.0-or-later"
 repository = "https://github.com/qrichert/git-slides.git"
 readme = "README.md"

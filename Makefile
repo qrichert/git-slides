@@ -51,7 +51,7 @@ check: ## Most stringent checks (includes checks still in development)
 	@cargo fmt
 	@cargo doc --no-deps --all-features
 	@cargo check
-	@cargo clippy --all-targets --all-features -- -D warnings -W clippy::all -W clippy::cargo -W clippy::complexity -W clippy::correctness -W clippy::nursery -W clippy::pedantic -W clippy::perf -W clippy::style -W clippy::suspicious # -A clippy::missing-const-for-fn -A clippy::option_if_let_else
+	@cargo clippy --all-targets --all-features -- -D warnings -W clippy::all -W clippy::cargo -W clippy::complexity -W clippy::correctness -W clippy::nursery -W clippy::pedantic -W clippy::perf -W clippy::style -W clippy::suspicious -A clippy::option_if_let_else # -A clippy::missing-const-for-fn -A clippy::option_if_let_else
 	@make test
 
 .PHONY: t
@@ -80,9 +80,9 @@ coverage-pct: ## Ensure code coverage of 100%
 		exit 0
 
 .PHONY: install
-install: ## Install ports
+install: ## Install git-slides
 	install -d $(PREFIX)/bin/
-	install ./target/release/ports $(PREFIX)/bin/ports
+	install ./target/release/git-slides $(PREFIX)/bin/git-slides
 
 %:
 	@$(call show_error_message,Unknown command '$@')
