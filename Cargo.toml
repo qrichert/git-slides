@@ -1,0 +1,17 @@
+[package]
+name = "git-slides"
+version = "0.0.1"
+edition = "2021"
+
+authors = ["Quentin Richert <noreply@richert.co>"]
+description = "Navigate back-and-forth through Git commits like presentation slides."
+license = "GPL-3.0-or-later"
+repository = "https://github.com/qrichert/git-slides.git"
+readme = "README.md"
+keywords = ["git", "presentation", "cli"]
+categories = ["command-line-utilities"]
+
+[profile.release]
+strip = true
+
+[dependencies]
