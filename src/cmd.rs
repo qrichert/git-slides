@@ -29,14 +29,14 @@ const COLOR_YELLOW: &str = "\x1b[33m";
 
 pub struct Cmd {
     git_dir: PathBuf,
-    slides: RefCell<Option<Vec<String>>>,
+    history: RefCell<Option<Vec<(String, String)>>>,
 }
 
 impl Cmd {
     pub fn new(git_dir: PathBuf) -> Self {
         Self {
             git_dir,
-            slides: RefCell::new(None),
+            history: RefCell::new(None),
         }
     }
 
@@ -102,16 +102,16 @@ impl Cmd {
     pub fn next(&self, offset: usize) {
         self.ensure_presentation_is_started();
 
-        let slides = self.get_slides();
+        let commits = self.get_commits();
         let n = self.get_index_of_current_commit();
 
         let n = n + 1 + offset;
 
-        if n >= slides.len() {
+        if n >= commits.len() {
             println!("You've reached the end of the presentation.");
         }
 
-        self.go(cmp::min(n, slides.len()));
+        self.go(cmp::min(n, commits.len()));
     }
 
     pub fn previous(&self, offset: usize) {
@@ -131,15 +131,15 @@ impl Cmd {
     pub fn go(&self, n: usize) {
         self.ensure_presentation_is_started();
 
-        let slides = self.get_slides();
+        let commits = self.get_commits();
 
-        if n < 1 || n > slides.len() {
+        if n < 1 || n > commits.len() {
             eprintln!("error: Bad slide index. Slide {n} does not exist.");
-            eprintln!("Possible values range from 1 to {}.", slides.len());
+            eprintln!("Possible values range from 1 to {}.", commits.len());
             std::process::exit(1);
         }
 
-        let go_to = slides.get(n - 1).expect("bounds checked");
+        let go_to = commits.get(n - 1).expect("bounds checked");
 
         if !git::is_working_directory_clean() {
             println!("Stashing uncommitted changes.");
@@ -160,13 +160,13 @@ impl Cmd {
 
         self.ensure_presentation_is_started();
 
-        let slides = self.get_slides();
+        let history = self.get_history();
         let n = self.get_index_of_current_commit();
 
         let display_from = n.saturating_sub(SHOW_N_PREVIOUS);
-        let display_to = std::cmp::min(n + SHOW_N_NEXT, slides.len() - 1); // 3 next.
+        let display_to = std::cmp::min(n + SHOW_N_NEXT, history.len() - 1);
 
-        let slide_number_padding = slides.len().to_string().len();
+        let slide_number_padding = history.len().to_string().len();
 
         // Acquire the lock once (instead of on every call to `print!`).
         let mut stdout = io::stdout().lock();
@@ -176,7 +176,8 @@ impl Cmd {
         }
 
         for i in display_from..=display_to {
-            let commit = slides.get(i).expect("bounds have been checked");
+            let (commit, title) = history.get(i).expect("bounds have been checked");
+
             if i == n {
                 let _ = write!(stdout, "* ");
             } else {
@@ -186,25 +187,23 @@ impl Cmd {
             if i < n {
                 let _ = writeln!(
                     stdout,
-                    "{COLOR_FAINT}{:>slide_number_padding$}/{} {} {}{COLOR_RESET}",
+                    "{COLOR_FAINT}{:>slide_number_padding$}/{} {} {title}{COLOR_RESET}",
                     i + 1,
-                    slides.len(),
+                    history.len(),
                     &commit[..7],
-                    git::commit_message(commit).unwrap()
                 );
             } else {
                 let _ = writeln!(
                     stdout,
-                    "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {}",
+                    "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                     i + 1,
-                    slides.len(),
+                    history.len(),
                     &commit[..7],
-                    git::commit_message(commit).unwrap()
                 );
             }
         }
 
-        if n + SHOW_N_NEXT > slides.len() - 1 {
+        if n + SHOW_N_NEXT > history.len() - 1 {
             let _ = writeln!(stdout, "  {COLOR_FAINT}(End){COLOR_RESET}");
         }
     }
@@ -212,30 +211,29 @@ impl Cmd {
     pub fn list(&self) {
         self.ensure_presentation_is_started();
 
-        let slides = self.get_slides();
+        let history = self.get_history();
         let n = self.get_index_of_current_commit();
 
-        let slide_number_padding = slides.len().to_string().len();
+        let slide_number_padding = history.len().to_string().len();
 
         // Acquire the lock once (instead of on every call to `print!`).
         let mut stdout = io::stdout().lock();
 
-        for i in 0..slides.len() {
-            let commit = slides.get(i).expect("bounds have been checked");
+        for i in 0..history.len() {
+            let (commit, title) = history.get(i).expect("bounds have been checked");
+
             if i == n {
                 let _ = write!(stdout, "* ");
             } else {
                 let _ = write!(stdout, "  ");
             }
+
             let _ = writeln!(
                 stdout,
-                "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {}",
+                "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                 i + 1,
-                slides.len(),
+                history.len(),
                 &commit[..7],
-                // TODO: Doing this in a loop is a big bottleneck.
-                //  Find a way to get the info for multiple and parse the output to a hashmap.
-                git::commit_message(commit).unwrap()
             );
         }
     }
@@ -251,12 +249,17 @@ impl Cmd {
         }
     }
 
-    fn get_slides(&self) -> Vec<String> {
-        // This function is expensive, but is called multiple times.
-        // Calling it multiple time simplifies the API lot, so we
+    fn get_commits(&self) -> Vec<String> {
+        let history = self.get_history();
+        history.into_iter().map(|x| x.0).collect()
+    }
+
+    fn get_history(&self) -> Vec<(String, String)> {
+        // This function is expensive, and is called multiple times.
+        // Calling it multiple time simplifies the API a lot, so we
         // cache the result instead of changing the API.
-        if self.slides.borrow().is_some() {
-            return self.slides.borrow().as_ref().unwrap().clone();
+        if self.history.borrow().is_some() {
+            return self.history.borrow().as_ref().unwrap().clone();
         }
 
         #[cfg(debug_assertions)]
@@ -264,6 +267,7 @@ impl Cmd {
             use std::sync::atomic::{AtomicBool, Ordering};
             static HAS_RUN: AtomicBool = AtomicBool::new(false);
             let already_run = HAS_RUN.swap(true, Ordering::SeqCst);
+            #[cfg(not(tarpaulin_include))]
             debug_assert!(
                 !already_run,
                 "Should only be executed once because of cache."
@@ -271,11 +275,12 @@ impl Cmd {
         }
 
         let commit = self.get_presentation_head_commit();
-        let slides = git::history_up_to_commit(&commit);
+        // TODO: Enable from..to.
+        let history = git::history_up_to_commit(&commit);
 
-        self.slides.borrow_mut().replace(slides.clone());
+        self.history.borrow_mut().replace(history.clone());
 
-        slides
+        history
     }
 
     fn get_presentation_head_commit(&self) -> String {
@@ -332,7 +337,7 @@ impl Cmd {
     fn get_index_of_current_commit_checked(&self) -> Option<usize> {
         let commit = git::current_commit()?;
 
-        let slides = self.get_slides();
-        slides.iter().position(|x| *x == commit)
+        let commits = self.get_commits();
+        commits.iter().position(|x| *x == commit)
     }
 }

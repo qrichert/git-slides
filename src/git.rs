@@ -106,19 +106,26 @@ pub fn ref_to_commit(ref_: &str) -> Option<String> {
 
 #[cfg(not(tarpaulin_include))] // Does not ignore '(return) Vec::new()'.
 #[must_use]
-pub fn history_up_to_commit(commit: &str) -> Vec<String> {
+pub fn history_up_to_commit(commit: &str) -> Vec<(String, String)> {
     let output = Command::new("git")
         .arg("rev-list")
         .arg("--first-parent")
+        .arg("--format=%H %s")
+        .arg("--no-commit-header")
         .arg("--reverse")
         .arg(commit)
         .output();
 
     if let Ok(output) = output {
         if output.status.success() {
-            let commits: Vec<String> = String::from_utf8_lossy(&output.stdout)
+            let commits: Vec<(String, String)> = String::from_utf8_lossy(&output.stdout)
                 .lines()
-                .map(String::from)
+                .filter_map(|line| {
+                    let pieces = line.split_once(' ')?;
+                    let commit = String::from(pieces.0);
+                    let title = String::from(pieces.1);
+                    Some((commit, title))
+                })
                 .collect();
             return commits;
         }
@@ -126,27 +133,6 @@ pub fn history_up_to_commit(commit: &str) -> Vec<String> {
 
     // Should never happen, because we always have at least one commit.
     Vec::new()
-}
-
-#[cfg(not(tarpaulin_include))] // Does not ignore '(return) None'.
-#[must_use]
-pub fn commit_message(commit: &str) -> Option<String> {
-    let output = Command::new("git")
-        .arg("rev-list")
-        .arg("--max-count=1")
-        .arg("--no-commit-header")
-        .arg("--format=%s")
-        .arg(commit)
-        .output();
-
-    if let Ok(output) = output {
-        if output.status.success() {
-            let message = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(message);
-        }
-    }
-
-    None
 }
 
 #[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
