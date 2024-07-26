@@ -142,8 +142,12 @@ impl Cmd {
         let go_to = commits.get(n - 1).expect("bounds checked");
 
         if !git::is_working_directory_clean() {
-            println!("Stashing uncommitted changes.");
-            git::stash();
+            if git::stash() {
+                println!("Stashed uncommitted changes.");
+            } else {
+                #[cfg(not(tarpaulin_include))]
+                eprintln!("error: Could not stash uncommitted changes.");
+            }
         }
 
         if !git::checkout(go_to) {

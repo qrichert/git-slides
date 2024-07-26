@@ -169,11 +169,18 @@ pub fn is_working_directory_clean() -> bool {
     String::from_utf8_lossy(&output.stdout).trim().is_empty()
 }
 
-pub fn stash() {
-    let _ = Command::new("git")
+#[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
+pub fn stash() -> bool {
+    let status = Command::new("git")
         .arg("stash")
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status();
+
+    let Ok(status) = status else {
+        return false;
+    };
+
+    status.success()
 }
