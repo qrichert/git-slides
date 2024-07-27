@@ -31,7 +31,7 @@ $ git slides start feat/my-presentation
 
 ```console
 $ wget https://github.com/qrichert/git-slides/releases/download/X.X.X/git-slides-X.X.X-xxx
-$ sudo install ./git-slides /usr/local/bin/git-slides
+$ sudo install ./git-slides-* /usr/local/bin/git-slides
 ```
 
 ### Manual Build
