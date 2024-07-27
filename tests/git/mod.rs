@@ -18,8 +18,10 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::{env, fs};
 
+const TMP_DIR: &str = env!("CARGO_TARGET_TMPDIR");
+
 pub fn init(dir: &str) -> PathBuf {
-    let dir = env::temp_dir().join(dir);
+    let dir = PathBuf::from(TMP_DIR).join(dir);
     println!("git init: '{}'.", dir.display());
     if dir.exists() {
         fs::remove_dir_all(&dir).unwrap();
