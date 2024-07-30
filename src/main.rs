@@ -92,6 +92,12 @@ fn main() {
         };
     }
 
+    // No arguments.
+
+    if cmd.is_presentation_started() {
+        return cmd.status();
+    }
+
     help();
 }
 

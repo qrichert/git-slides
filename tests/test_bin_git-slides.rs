@@ -72,6 +72,20 @@ fn no_args_shows_help() {
 }
 
 #[test]
+fn no_args_but_presentation_is_started_shows_status() {
+    let dir = git::init("no_args_but_presentation_is_started_shows_status");
+    git::commit(&dir, "Slide 1");
+
+    run(&dir, &["start"]);
+
+    let output = run(&dir, &[]);
+
+    assert_eq!(output.exit_code, 0);
+    assert_eq!(git::status(&dir), "Slide 1");
+    assert!(output.stdout.contains("* 1/1"));
+}
+
+#[test]
 fn version() {
     // Works outside of git repository.
     let output = run(&env::temp_dir(), &["--version"]);

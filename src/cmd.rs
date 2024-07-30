@@ -243,14 +243,18 @@ impl Cmd {
     }
 
     fn ensure_presentation_is_started(&self) {
-        let store_file = self.store_file();
-        if !store_file.is_file() {
+        if !self.is_presentation_started() {
             eprintln!(
                 "You need to start by '{} start'.",
                 env!("CARGO_BIN_NAME").replacen('-', " ", 1)
             );
             std::process::exit(1);
         }
+    }
+
+    pub fn is_presentation_started(&self) -> bool {
+        let store_file = self.store_file();
+        store_file.is_file()
     }
 
     fn get_commits(&self) -> Vec<String> {
