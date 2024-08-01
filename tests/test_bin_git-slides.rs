@@ -523,6 +523,29 @@ fn stop_started_from_detached() {
 }
 
 #[test]
+fn stop_in_dirty_working_directory() {
+    let dir = git::init("stop_in_dirty_working_directory");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+
+    run(&dir, &["start"]);
+
+    let new_file = dir.join("hello.txt");
+
+    let _ = fs::write(&new_file, ":)");
+    git::add(&dir, &new_file);
+
+    assert!(!git::has_stashed_changes(&dir));
+
+    let output = run(&dir, &["stop"]);
+
+    assert_eq!(output.exit_code, 0);
+    assert!(output.stdout.contains("Stashed uncommitted changes."));
+
+    assert!(git::has_stashed_changes(&dir));
+}
+
+#[test]
 fn go_regular() {
     let dir = git::init("go_regular");
     git::commit(&dir, "Slide 1");
@@ -595,6 +618,7 @@ fn go_in_dirty_working_directory() {
     let output = run(&dir, &["go", "2"]);
 
     assert_eq!(output.exit_code, 0);
+    assert!(output.stdout.contains("Stashed uncommitted changes."));
     assert!(output.stdout.contains("* 2/2"));
 
     assert!(git::has_stashed_changes(&dir));

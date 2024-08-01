@@ -77,6 +77,8 @@ impl Cmd {
     pub fn stop(&self) {
         self.ensure_presentation_is_started();
 
+        Self::stash_uncommitted_changes();
+
         println!("Presentation stopped.");
 
         if let Some(initial_branch) = self.get_initial_branch() {
@@ -141,14 +143,7 @@ impl Cmd {
 
         let go_to = commits.get(n - 1).expect("bounds checked");
 
-        if !git::is_working_directory_clean() {
-            if git::stash() {
-                println!("Stashed uncommitted changes.");
-            } else {
-                #[cfg(not(tarpaulin_include))]
-                eprintln!("error: Could not stash uncommitted changes.");
-            }
-        }
+        Self::stash_uncommitted_changes();
 
         if !git::checkout(go_to) {
             eprintln!("error: Could not checkout {go_to}.");
@@ -255,6 +250,17 @@ impl Cmd {
     pub fn is_presentation_started(&self) -> bool {
         let store_file = self.store_file();
         store_file.is_file()
+    }
+
+    #[cfg(not(tarpaulin_include))] // Does not ignore 'else eprintln()'.
+    fn stash_uncommitted_changes() {
+        if !git::is_working_directory_clean() {
+            if git::stash() {
+                println!("Stashed uncommitted changes.");
+            } else {
+                eprintln!("error: Could not stash uncommitted changes.");
+            }
+        }
     }
 
     fn get_commits(&self) -> Vec<String> {
