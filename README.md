@@ -25,6 +25,23 @@ Git command:
 $ git slides start feat/my-presentation
 ```
 
+```
+usage: git-slides [<options>] <command> [<args>]
+
+Commands:
+  start [<ref>]        Start presentation.
+  stop                 End presentation.
+  next, n [<n>]        Go forward one or <n> slides.
+  previous, p [<n>]    Go back one or <n> slides.
+  go <n>               Go to slide <n>.
+  status               Show current status.
+  list                 List all slides.
+
+Options:
+  -h, --help           Show this message and exit.
+  -v, --version        Show the version and exit.
+```
+
 ## Installation
 
 ### Directly
