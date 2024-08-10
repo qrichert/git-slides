@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::cell::RefCell;
+use std::cell::OnceCell;
 use std::path::PathBuf;
 use std::{cmp, fs};
 use std::{io, io::Write};
@@ -29,14 +29,14 @@ const COLOR_YELLOW: &str = "\x1b[33m";
 
 pub struct Cmd {
     git_dir: PathBuf,
-    history: RefCell<Option<Vec<(String, String)>>>,
+    history: OnceCell<Vec<(String, String)>>,
 }
 
 impl Cmd {
     pub fn new(git_dir: PathBuf) -> Self {
         Self {
             git_dir,
-            history: RefCell::new(None),
+            history: OnceCell::new(),
         }
     }
 
@@ -263,38 +263,19 @@ impl Cmd {
         }
     }
 
-    fn get_commits(&self) -> Vec<String> {
+    fn get_commits(&self) -> Vec<&String> {
         let history = self.get_history();
-        history.into_iter().map(|x| x.0).collect()
+        history.iter().map(|x| &x.0).collect()
     }
 
-    fn get_history(&self) -> Vec<(String, String)> {
+    fn get_history(&self) -> &Vec<(String, String)> {
         // This function is expensive, and is called multiple times.
-        // Calling it multiple time simplifies the API a lot, so we
+        // Calling it multiple times simplifies the API a lot, so we
         // cache the result instead of changing the API.
-        if self.history.borrow().is_some() {
-            return self.history.borrow().as_ref().unwrap().clone();
-        }
-
-        #[cfg(debug_assertions)]
-        {
-            use std::sync::atomic::{AtomicBool, Ordering};
-            static HAS_RUN: AtomicBool = AtomicBool::new(false);
-            let already_run = HAS_RUN.swap(true, Ordering::SeqCst);
-            #[cfg(not(tarpaulin_include))]
-            debug_assert!(
-                !already_run,
-                "Should only be executed once because of cache."
-            );
-        }
-
-        let commit = self.get_presentation_head_commit();
-        // TODO: Enable from..to.
-        let history = git::history_up_to_commit(&commit);
-
-        self.history.borrow_mut().replace(history.clone());
-
-        history
+        self.history.get_or_init(|| {
+            let commit = self.get_presentation_head_commit();
+            git::history_up_to_commit(&commit)
+        })
     }
 
     fn get_presentation_head_commit(&self) -> String {
@@ -352,6 +333,6 @@ impl Cmd {
         let commit = git::current_commit()?;
 
         let commits = self.get_commits();
-        commits.iter().position(|x| *x == commit)
+        commits.into_iter().position(|x| *x == commit)
     }
 }
