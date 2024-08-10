@@ -18,6 +18,11 @@ use std::env;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
+pub struct Commit {
+    pub hash: String,
+    pub title: String,
+}
+
 #[must_use]
 pub fn is_git_in_path() -> bool {
     Command::new("git")
@@ -47,7 +52,7 @@ pub fn find_git_directory() -> Option<PathBuf> {
 }
 
 #[must_use]
-pub fn current_commit() -> Option<String> {
+pub fn current_commit_hash() -> Option<String> {
     let output = Command::new("git")
         .arg("rev-parse")
         .arg("--verify")
@@ -57,8 +62,8 @@ pub fn current_commit() -> Option<String> {
 
     if let Ok(output) = output {
         if output.status.success() {
-            let commit = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(commit);
+            let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+            return Some(hash);
         }
     }
 
@@ -76,8 +81,8 @@ pub fn current_branch() -> Option<String> {
 
     if let Ok(output) = output {
         if output.status.success() {
-            let commit = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(commit);
+            let branch = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+            return Some(branch);
         }
     }
 
@@ -85,7 +90,7 @@ pub fn current_branch() -> Option<String> {
 }
 
 #[must_use]
-pub fn ref_to_commit(ref_: &str) -> Option<String> {
+pub fn ref_to_commit_hash(ref_: &str) -> Option<String> {
     let output = Command::new("git")
         .arg("rev-parse")
         .arg("--verify")
@@ -96,8 +101,8 @@ pub fn ref_to_commit(ref_: &str) -> Option<String> {
 
     if let Ok(output) = output {
         if output.status.success() {
-            let commit = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(commit);
+            let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+            return Some(hash);
         }
     }
 
@@ -106,7 +111,7 @@ pub fn ref_to_commit(ref_: &str) -> Option<String> {
 
 #[cfg(not(tarpaulin_include))] // Does not ignore '(return) Vec::new()'.
 #[must_use]
-pub fn history_up_to_commit(commit: &str) -> Vec<(String, String)> {
+pub fn history_up_to_commit(commit: &str) -> Vec<Commit> {
     let output = Command::new("git")
         .arg("rev-list")
         .arg("--first-parent")
@@ -118,13 +123,13 @@ pub fn history_up_to_commit(commit: &str) -> Vec<(String, String)> {
 
     if let Ok(output) = output {
         if output.status.success() {
-            let commits: Vec<(String, String)> = String::from_utf8_lossy(&output.stdout)
+            let commits: Vec<Commit> = String::from_utf8_lossy(&output.stdout)
                 .lines()
                 .filter_map(|line| {
                     let pieces = line.split_once(' ')?;
-                    let commit = String::from(pieces.0);
+                    let hash = String::from(pieces.0);
                     let title = String::from(pieces.1);
-                    Some((commit, title))
+                    Some(Commit { hash, title })
                 })
                 .collect();
             return commits;

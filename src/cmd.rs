@@ -19,7 +19,7 @@ use std::path::PathBuf;
 use std::{cmp, fs};
 use std::{io, io::Write};
 
-use super::git;
+use super::git::{self, Commit};
 
 const STORE_FILE: &str = env!("CARGO_BIN_NAME");
 
@@ -29,7 +29,7 @@ const COLOR_YELLOW: &str = "\x1b[33m";
 
 pub struct Cmd {
     git_dir: PathBuf,
-    history: OnceCell<Vec<(String, String)>>,
+    history: OnceCell<Vec<Commit>>,
 }
 
 impl Cmd {
@@ -46,30 +46,30 @@ impl Cmd {
             std::process::exit(1);
         }
 
-        let commit = if let Some(ref_) = ref_ {
-            git::ref_to_commit(&ref_).unwrap_or_else(|| {
+        let commit_hash = if let Some(ref_) = ref_ {
+            git::ref_to_commit_hash(&ref_).unwrap_or_else(|| {
                 eprintln!("error: Bad ref input: '{ref_}'.");
                 std::process::exit(1);
             })
         } else {
-            git::current_commit().unwrap_or_else(|| {
+            git::current_commit_hash().unwrap_or_else(|| {
                 eprintln!("error: No HEAD commit. Please provide a valid ref.");
                 std::process::exit(1);
             })
         };
 
-        let branch = git::current_branch().unwrap_or_default();
+        let branch_name = git::current_branch().unwrap_or_default();
 
         let store_file = self.store_file();
         #[cfg(not(tarpaulin_include))]
         {
-            if fs::write(store_file, format!("{branch}:{commit}\n")).is_err() {
+            if fs::write(store_file, format!("{branch_name}:{commit_hash}\n")).is_err() {
                 eprintln!("error: Cannot write '.git/{STORE_FILE}'. Aborting.");
                 std::process::exit(1);
             }
         }
 
-        println!("Presentation started at {commit}.");
+        println!("Presentation started at {commit_hash}.");
 
         self.go(1);
     }
@@ -86,7 +86,7 @@ impl Cmd {
             let _ = git::checkout(&initial_branch);
         } else {
             // The user was likely in detached mode when the presentation started.
-            let head_commit = self.get_presentation_head_commit();
+            let head_commit = self.get_presentation_head_commit_hash();
             println!("Going back to commit {head_commit}.");
             let _ = git::checkout(&head_commit);
         }
@@ -104,7 +104,7 @@ impl Cmd {
     pub fn next(&self, offset: usize) {
         self.ensure_presentation_is_started();
 
-        let commits = self.get_commits();
+        let commits = self.get_history();
         let n = self.get_index_of_current_commit();
 
         let n = n + 1 + offset;
@@ -133,7 +133,7 @@ impl Cmd {
     pub fn go(&self, n: usize) {
         self.ensure_presentation_is_started();
 
-        let commits = self.get_commits();
+        let commits = self.get_commits_hashes();
 
         if n < 1 || n > commits.len() {
             eprintln!("error: Bad slide index. Slide {n} does not exist.");
@@ -175,7 +175,7 @@ impl Cmd {
         }
 
         for i in display_from..=display_to {
-            let (commit, title) = history.get(i).expect("bounds have been checked");
+            let Commit { hash, title } = history.get(i).expect("bounds have been checked");
 
             if i == n {
                 let _ = write!(stdout, "* ");
@@ -189,7 +189,7 @@ impl Cmd {
                     "{COLOR_FAINT}{:>slide_number_padding$}/{} {} {title}{COLOR_RESET}",
                     i + 1,
                     history.len(),
-                    &commit[..7],
+                    &hash[..7],
                 );
             } else {
                 let _ = writeln!(
@@ -197,7 +197,7 @@ impl Cmd {
                     "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                     i + 1,
                     history.len(),
-                    &commit[..7],
+                    &hash[..7],
                 );
             }
         }
@@ -219,7 +219,7 @@ impl Cmd {
         let mut stdout = io::stdout().lock();
 
         for i in 0..history.len() {
-            let (commit, title) = history.get(i).expect("bounds have been checked");
+            let Commit { hash, title } = history.get(i).expect("bounds have been checked");
 
             if i == n {
                 let _ = write!(stdout, "* ");
@@ -232,7 +232,7 @@ impl Cmd {
                 "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                 i + 1,
                 history.len(),
-                &commit[..7],
+                &hash[..7],
             );
         }
     }
@@ -263,25 +263,24 @@ impl Cmd {
         }
     }
 
-    fn get_commits(&self) -> Vec<&String> {
+    fn get_commits_hashes(&self) -> Vec<&String> {
         let history = self.get_history();
-        history.iter().map(|x| &x.0).collect()
+        history.iter().map(|x| &x.hash).collect()
     }
 
-    fn get_history(&self) -> &Vec<(String, String)> {
+    fn get_history(&self) -> &Vec<Commit> {
         // This function is expensive, and is called multiple times.
         // Calling it multiple times simplifies the API a lot, so we
         // cache the result instead of changing the API.
         self.history.get_or_init(|| {
-            let commit = self.get_presentation_head_commit();
-            git::history_up_to_commit(&commit)
+            let hash = self.get_presentation_head_commit_hash();
+            git::history_up_to_commit(&hash)
         })
     }
 
-    fn get_presentation_head_commit(&self) -> String {
-        let commit = self.read_store_file();
-        // <branch>:<commit>
-        commit
+    fn get_presentation_head_commit_hash(&self) -> String {
+        // <branch name>:<commit hash>
+        self.read_store_file()
             .trim()
             .split_once(':')
             .expect("':' is always inserted during 'start'")
@@ -290,9 +289,9 @@ impl Cmd {
     }
 
     fn get_initial_branch(&self) -> Option<String> {
-        let commit = self.read_store_file();
-        // <branch>:<commit>
-        let branch = commit
+        // <branch name>:<commit hash>
+        let store = self.read_store_file();
+        let branch = store
             .trim()
             .split_once(':')
             .expect("':' is always inserted during 'start'")
@@ -308,11 +307,11 @@ impl Cmd {
     #[cfg(not(tarpaulin_include))]
     fn read_store_file(&self) -> String {
         let store_file = self.store_file();
-        let Ok(commit) = fs::read_to_string(store_file) else {
+        let Ok(store) = fs::read_to_string(store_file) else {
             eprintln!("error: Cannot read '.git/{STORE_FILE}'. Aborting.");
             std::process::exit(1);
         };
-        commit
+        store
     }
 
     fn store_file(&self) -> PathBuf {
@@ -330,9 +329,9 @@ impl Cmd {
     // May return `None` if user checked out to non-presentation commit,
     // or deleted commits.
     fn get_index_of_current_commit_checked(&self) -> Option<usize> {
-        let commit = git::current_commit()?;
+        let hash = git::current_commit_hash()?;
 
-        let commits = self.get_commits();
-        commits.into_iter().position(|x| *x == commit)
+        let hashes = self.get_commits_hashes();
+        hashes.into_iter().position(|x| *x == hash)
     }
 }
