@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+mod output;
+
 use std::cell::OnceCell;
+use std::fmt::Write as _;
+use std::io::{self, Write as _};
 use std::path::PathBuf;
 use std::{cmp, fs};
-use std::{io, io::Write};
 
 use super::git::{self, Commit};
 
@@ -215,26 +218,29 @@ impl Cmd {
 
         let slide_number_padding = history.len().to_string().len();
 
-        // Acquire the lock once (instead of on every call to `print!`).
-        let mut stdout = io::stdout().lock();
+        // Pre-allocate a "best-guess" number of characters. Each line
+        // includes padding, slide number, commit hash, title and color.
+        let mut out = String::with_capacity(history.len() * 72);
 
         for i in 0..history.len() {
             let Commit { hash, title } = history.get(i).expect("bounds have been checked");
 
             if i == n {
-                let _ = write!(stdout, "* ");
+                let _ = write!(out, "* ");
             } else {
-                let _ = write!(stdout, "  ");
+                let _ = write!(out, "  ");
             }
 
             let _ = writeln!(
-                stdout,
+                out,
                 "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                 i + 1,
                 history.len(),
                 &hash[..7],
             );
         }
+
+        output::Pager::page_or_print(&out);
     }
 
     fn ensure_presentation_is_started(&self) {
