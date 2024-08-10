@@ -678,6 +678,7 @@ fn status_full() {
 }
 
 #[test]
+#[allow(clippy::cognitive_complexity)]
 fn status_cut() {
     let dir = git::init("status_cut");
     git::commit(&dir, "Slide 1");
