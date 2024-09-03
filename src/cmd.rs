@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-mod output;
-
+use lessify::Pager;
 use std::cell::OnceCell;
 use std::fmt::Write as _;
 use std::io::{self, Write as _};
@@ -240,7 +239,7 @@ impl Cmd {
             );
         }
 
-        output::Pager::page_or_print(&out);
+        Pager::page_or_print(&out);
     }
 
     fn ensure_presentation_is_started(&self) {
