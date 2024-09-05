@@ -175,6 +175,7 @@ pub fn is_working_directory_clean() -> bool {
 }
 
 #[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
+#[must_use]
 pub fn stash() -> bool {
     let status = Command::new("git")
         .arg("stash")

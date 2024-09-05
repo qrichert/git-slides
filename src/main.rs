@@ -15,8 +15,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 mod cmd;
-mod git;
 
+use git_slides::git;
 use std::env;
 use std::path::PathBuf;
 
