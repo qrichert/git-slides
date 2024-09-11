@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use lessify::Pager;
 use std::cell::OnceCell;
 use std::fmt::Write as _;
 use std::io::{self, Write as _};
 use std::path::PathBuf;
 use std::{cmp, fs};
 
-use super::git::{self, Commit};
+use lessify::Pager;
+
+use git_slides::git::{self, Commit};
 
 const STORE_FILE: &str = env!("CARGO_BIN_NAME");
 

@@ -16,11 +16,12 @@
 
 mod cmd;
 
-use git_slides::git;
 use std::env;
 use std::path::PathBuf;
 
-use cmd::Cmd;
+use git_slides::git;
+
+use crate::cmd::Cmd;
 
 fn main() {
     let mut args = env::args().peekable();

@@ -16,9 +16,10 @@
 
 mod git;
 
+use std::env;
+use std::fs;
 use std::path::Path;
 use std::process::Command;
-use std::{env, fs};
 
 const GIT_SLIDES: &str = env!("CARGO_BIN_EXE_git-slides");
 
