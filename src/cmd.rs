@@ -86,12 +86,12 @@ impl Cmd {
 
         if let Some(initial_branch) = self.get_initial_branch() {
             println!("Going back to branch '{initial_branch}'.");
-            let _ = git::checkout(&initial_branch);
+            _ = git::checkout(&initial_branch);
         } else {
             // The user was likely in detached mode when the presentation started.
             let head_commit = self.get_presentation_head_commit_hash();
             println!("Going back to commit {head_commit}.");
-            let _ = git::checkout(&head_commit);
+            _ = git::checkout(&head_commit);
         }
 
         let store_file = self.store_file();
@@ -174,20 +174,20 @@ impl Cmd {
         let mut stdout = io::stdout().lock();
 
         if n.checked_sub(SHOW_N_PREVIOUS).is_none() {
-            let _ = writeln!(stdout, "  {COLOR_FAINT}(Start){COLOR_RESET}");
+            _ = writeln!(stdout, "  {COLOR_FAINT}(Start){COLOR_RESET}");
         }
 
         for i in display_from..=display_to {
             let Commit { hash, title } = history.get(i).expect("bounds have been checked");
 
             if i == n {
-                let _ = write!(stdout, "* ");
+                _ = write!(stdout, "* ");
             } else {
-                let _ = write!(stdout, "  ");
+                _ = write!(stdout, "  ");
             }
 
             if i < n {
-                let _ = writeln!(
+                _ = writeln!(
                     stdout,
                     "{COLOR_FAINT}{:>slide_number_padding$}/{} {} {title}{COLOR_RESET}",
                     i + 1,
@@ -195,7 +195,7 @@ impl Cmd {
                     &hash[..7],
                 );
             } else {
-                let _ = writeln!(
+                _ = writeln!(
                     stdout,
                     "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                     i + 1,
@@ -206,7 +206,7 @@ impl Cmd {
         }
 
         if n + SHOW_N_NEXT > history.len() - 1 {
-            let _ = writeln!(stdout, "  {COLOR_FAINT}(End){COLOR_RESET}");
+            _ = writeln!(stdout, "  {COLOR_FAINT}(End){COLOR_RESET}");
         }
     }
 
@@ -226,12 +226,12 @@ impl Cmd {
             let Commit { hash, title } = history.get(i).expect("bounds have been checked");
 
             if i == n {
-                let _ = write!(out, "* ");
+                _ = write!(out, "* ");
             } else {
-                let _ = write!(out, "  ");
+                _ = write!(out, "  ");
             }
 
-            let _ = writeln!(
+            _ = writeln!(
                 out,
                 "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
                 i + 1,
