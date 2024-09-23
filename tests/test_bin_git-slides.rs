@@ -185,7 +185,7 @@ fn start_in_dirty_working_directory() {
 
     let new_file = dir.join("hello.txt");
 
-    let _ = fs::write(&new_file, ":)");
+    _ = fs::write(&new_file, ":)");
     git::add(&dir, &new_file);
 
     let output = run(&dir, &["start"]);
@@ -204,7 +204,7 @@ fn start_in_half_dirty_working_directory() {
 
     let new_file = dir.join("hello.txt");
 
-    let _ = fs::write(new_file, ":)");
+    _ = fs::write(new_file, ":)");
 
     // This version doesn't 'git add' the file; it remains untracked.
 
@@ -533,7 +533,7 @@ fn stop_in_dirty_working_directory() {
 
     let new_file = dir.join("hello.txt");
 
-    let _ = fs::write(&new_file, ":)");
+    _ = fs::write(&new_file, ":)");
     git::add(&dir, &new_file);
 
     assert!(!git::has_stashed_changes(&dir));
@@ -611,7 +611,7 @@ fn go_in_dirty_working_directory() {
 
     let new_file = dir.join("hello.txt");
 
-    let _ = fs::write(&new_file, ":)");
+    _ = fs::write(&new_file, ":)");
     git::add(&dir, &new_file);
 
     assert!(!git::has_stashed_changes(&dir));
