@@ -269,16 +269,20 @@ fn next_regular() {
     let output = run(&dir, &["next"]);
     assert_eq!(git::status(&dir), "Slide 2");
     assert_eq!(output.exit_code, 0);
-    assert!(!output
-        .stdout
-        .contains("You've reached the end of the presentation.\n"));
+    assert!(
+        !output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
 
     let output = run(&dir, &["next"]);
     assert_eq!(git::status(&dir), "Slide 3");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You've reached the end of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
 }
 
 #[test]
@@ -309,17 +313,21 @@ fn next_with_offset() {
     let output = run(&dir, &["next", "2"]);
     assert_eq!(git::status(&dir), "Slide 3");
     assert_eq!(output.exit_code, 0);
-    assert!(!output
-        .stdout
-        .contains("You've reached the end of the presentation.\n"));
+    assert!(
+        !output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
 
     // Does not overflow.
     let output = run(&dir, &["next", "10"]);
     assert_eq!(git::status(&dir), "Slide 4");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You've reached the end of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
 }
 
 #[test]
@@ -340,9 +348,11 @@ fn next_with_overlow() {
 
     assert_eq!(git::status(&dir), "Slide 4");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You've reached the end of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
 }
 
 #[test]
@@ -378,16 +388,20 @@ fn previous_regular() {
     let output = run(&dir, &["previous"]);
     assert_eq!(git::status(&dir), "Slide 2");
     assert_eq!(output.exit_code, 0);
-    assert!(!output
-        .stdout
-        .contains("You're at the start of the presentation.\n"));
+    assert!(
+        !output
+            .stdout
+            .contains("You're at the start of the presentation.\n")
+    );
 
     let output = run(&dir, &["previous"]);
     assert_eq!(git::status(&dir), "Slide 1");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You're at the start of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You're at the start of the presentation.\n")
+    );
 }
 
 #[test]
@@ -420,17 +434,21 @@ fn previous_with_offset() {
     let output = run(&dir, &["previous", "2"]);
     assert_eq!(git::status(&dir), "Slide 2");
     assert_eq!(output.exit_code, 0);
-    assert!(!output
-        .stdout
-        .contains("You're at the start of the presentation.\n"));
+    assert!(
+        !output
+            .stdout
+            .contains("You're at the start of the presentation.\n")
+    );
 
     // Does not overflow.
     let output = run(&dir, &["previous", "10"]);
     assert_eq!(git::status(&dir), "Slide 1");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You're at the start of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You're at the start of the presentation.\n")
+    );
 }
 
 #[test]
@@ -452,9 +470,11 @@ fn previous_with_overlow() {
 
     assert_eq!(git::status(&dir), "Slide 1");
     assert_eq!(output.exit_code, 0);
-    assert!(output
-        .stdout
-        .contains("You're at the start of the presentation.\n"));
+    assert!(
+        output
+            .stdout
+            .contains("You're at the start of the presentation.\n")
+    );
 }
 
 #[test]
