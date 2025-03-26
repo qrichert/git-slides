@@ -1,8 +1,7 @@
 [package]
 name = "git-slides"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
-
 authors = ["Quentin Richert <noreply@richert.co>"]
 description = "Navigate through Git commits like presentation slides."
 license = "GPL-3.0-or-later"
@@ -19,4 +18,4 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(tarpaulin_include)'] }
 
 [dependencies]
 # Output text through a pager.
-lessify = "0.3.0"
+lessify = "0.3.1"
