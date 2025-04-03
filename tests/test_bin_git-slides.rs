@@ -30,13 +30,13 @@ struct Output {
 }
 
 fn run(dir: &Path, args: &[&str]) -> Output {
-    let mut output = Command::new(GIT_SLIDES);
+    let mut command = Command::new(GIT_SLIDES);
 
     for arg in args {
-        output.arg(arg);
+        command.arg(arg);
     }
 
-    let output = output.current_dir(dir).output().unwrap();
+    let output = command.current_dir(dir).output().unwrap();
 
     Output {
         exit_code: output.status.code().unwrap(),

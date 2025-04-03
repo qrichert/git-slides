@@ -18,24 +18,22 @@ mod cmd;
 
 use std::env;
 use std::path::PathBuf;
+use std::process;
 
 use git_slides::git;
 
 use crate::cmd::Cmd;
 
 fn main() {
-    let mut args = env::args().peekable();
-    args.next();
+    let mut args = env::args().skip(1).peekable();
 
     if let Some(arg) = args.peek() {
         match arg.as_str() {
             "-h" | "--help" => {
-                args.next();
                 help();
                 return;
             }
             "-v" | "--version" => {
-                args.next();
                 version();
                 return;
             }
@@ -57,7 +55,7 @@ fn main() {
             "stop" => cmd.stop(),
             "next" | "n" => {
                 // `next` may be followed by `n`.
-                if let Some(n) = args.peek() {
+                if let Some(n) = args.next() {
                     if let Ok(n) = n.parse::<usize>() {
                         return cmd.next(n);
                     }
@@ -66,7 +64,7 @@ fn main() {
             }
             "previous" | "p" => {
                 // `previous` may be followed by `n`.
-                if let Some(n) = args.peek() {
+                if let Some(n) = args.next() {
                     if let Ok(n) = n.parse::<usize>() {
                         return cmd.previous(n);
                     }
@@ -75,20 +73,20 @@ fn main() {
             }
             "go" => {
                 // `go` must be followed by `n`.
-                if let Some(n) = args.peek() {
+                if let Some(n) = args.next() {
                     if let Ok(n) = n.parse::<usize>() {
                         return cmd.go(n);
                     }
                 }
                 eprintln!("fatal: Need a slide number.");
-                std::process::exit(2);
+                process::exit(2);
             }
             "status" => cmd.status(),
             "list" => cmd.list(),
             arg => {
                 eprintln!("Unknown argument: '{arg}'.\n");
                 help();
-                std::process::exit(2);
+                process::exit(2);
             }
         };
     }
@@ -105,14 +103,14 @@ fn main() {
 fn ensure_git_executable_is_in_path() {
     if !git::is_git_in_path() {
         eprintln!("fatal: Did not find git executable.");
-        std::process::exit(1);
+        process::exit(1);
     }
 }
 
 fn get_git_directory_or_exit() -> PathBuf {
     let Some(git_dir) = git::find_git_directory() else {
         eprintln!("fatal: Not a git repository (or any of the parent directories): .git");
-        std::process::exit(1);
+        process::exit(1);
     };
     git_dir
 }
@@ -140,5 +138,5 @@ Options:
 }
 
 fn version() {
-    println!("{} {}", env!("CARGO_BIN_NAME"), env!("CARGO_PKG_VERSION"));
+    println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
 }

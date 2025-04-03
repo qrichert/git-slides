@@ -15,10 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::cell::OnceCell;
+use std::cmp;
 use std::fmt::Write as _;
+use std::fs;
 use std::io::{self, Write as _};
 use std::path::PathBuf;
-use std::{cmp, fs};
+use std::process;
 
 use lessify::Pager;
 
@@ -46,18 +48,18 @@ impl Cmd {
     pub fn start(&self, ref_: Option<String>) {
         if !git::is_working_directory_clean() {
             eprintln!("error: Working directory contains uncommitted changes.");
-            std::process::exit(1);
+            process::exit(1);
         }
 
         let commit_hash = if let Some(ref_) = ref_ {
             git::ref_to_commit_hash(&ref_).unwrap_or_else(|| {
                 eprintln!("error: Bad ref input: '{ref_}'.");
-                std::process::exit(1);
+                process::exit(1);
             })
         } else {
             git::current_commit_hash().unwrap_or_else(|| {
                 eprintln!("error: No HEAD commit. Please provide a valid ref.");
-                std::process::exit(1);
+                process::exit(1);
             })
         };
 
@@ -68,7 +70,7 @@ impl Cmd {
         {
             if fs::write(store_file, format!("{branch_name}:{commit_hash}\n")).is_err() {
                 eprintln!("error: Cannot write '.git/{STORE_FILE}'. Aborting.");
-                std::process::exit(1);
+                process::exit(1);
             }
         }
 
@@ -99,7 +101,7 @@ impl Cmd {
         {
             if fs::remove_file(store_file).is_err() {
                 eprintln!("error: Cannot remove '.git/{STORE_FILE}'. Aborting.");
-                std::process::exit(1);
+                process::exit(1);
             }
         }
     }
@@ -141,7 +143,7 @@ impl Cmd {
         if n < 1 || n > commits.len() {
             eprintln!("error: Bad slide index. Slide {n} does not exist.");
             eprintln!("Possible values range from 1 to {}.", commits.len());
-            std::process::exit(1);
+            process::exit(1);
         }
 
         let go_to = commits.get(n - 1).expect("bounds checked");
@@ -150,7 +152,7 @@ impl Cmd {
 
         if !git::checkout(go_to) {
             eprintln!("error: Could not checkout {go_to}.");
-            std::process::exit(1);
+            process::exit(1);
         }
 
         self.status();
@@ -249,7 +251,7 @@ impl Cmd {
                 "You need to start by '{} start'.",
                 env!("CARGO_BIN_NAME").replacen('-', " ", 1)
             );
-            std::process::exit(1);
+            process::exit(1);
         }
     }
 
@@ -315,7 +317,7 @@ impl Cmd {
         let store_file = self.store_file();
         let Ok(store) = fs::read_to_string(store_file) else {
             eprintln!("error: Cannot read '.git/{STORE_FILE}'. Aborting.");
-            std::process::exit(1);
+            process::exit(1);
         };
         store
     }
@@ -327,7 +329,7 @@ impl Cmd {
     fn get_index_of_current_commit(&self) -> usize {
         let Some(commit) = self.get_index_of_current_commit_checked() else {
             eprintln!("error: Current HEAD not part of presentation.");
-            std::process::exit(1);
+            process::exit(1);
         };
         commit
     }
