@@ -4,13 +4,13 @@ version = 4
 
 [[package]]
 name = "git-slides"
-version = "0.4.1"
+version = "0.5.0"
 dependencies = [
  "lessify",
 ]
 
 [[package]]
 name = "lessify"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6cbf88b0a279209761e4db002610eba66a2662ad4f11ae27079238b548ad64e"
+checksum = "89e0f6ba27dc2612e7309ca5911aed706dca0afe47f14a4da6ed2c35bf161df0"
