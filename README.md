@@ -4,6 +4,7 @@
 ![GitHub Tag](https://img.shields.io/github/v/tag/qrichert/git-slides?sort=semver&filter=*.*.*&label=release)
 [![tokei (loc)](https://tokei.rs/b1/github/qrichert/git-slides?label=loc&style=flat)](https://github.com/XAMPPRocky/tokei)
 [![crates.io](https://img.shields.io/crates/d/git-slides?logo=rust&logoColor=white&color=orange)](https://crates.io/crates/git-slides)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/qrichert/git-slides/ci.yml?label=tests)](https://github.com/qrichert/git-slides/actions)
 
 _Navigate through Git commits like presentation slides._
 
