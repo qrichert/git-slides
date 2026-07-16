@@ -11,6 +11,9 @@ keywords = ["git", "presentation", "cli"]
 categories = ["command-line-utilities"]
 
 [profile.release]
+codegen-units = 1
+lto = "fat"
+panic = "abort"
 strip = true
 
 [lints.rust]
