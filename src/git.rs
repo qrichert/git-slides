@@ -60,11 +60,11 @@ pub fn current_commit_hash() -> Option<String> {
         .arg("HEAD^{commit}")
         .output();
 
-    if let Ok(output) = output {
-        if output.status.success() {
-            let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(hash);
-        }
+    if let Ok(output) = output
+        && output.status.success()
+    {
+        let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        return Some(hash);
     }
 
     None
@@ -79,11 +79,11 @@ pub fn current_branch() -> Option<String> {
         .arg("HEAD")
         .output();
 
-    if let Ok(output) = output {
-        if output.status.success() {
-            let branch = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(branch);
-        }
+    if let Ok(output) = output
+        && output.status.success()
+    {
+        let branch = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        return Some(branch);
     }
 
     None
@@ -99,11 +99,11 @@ pub fn ref_to_commit_hash(ref_: &str) -> Option<String> {
         .arg(format!("{ref_}^{{commit}}"))
         .output();
 
-    if let Ok(output) = output {
-        if output.status.success() {
-            let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
-            return Some(hash);
-        }
+    if let Ok(output) = output
+        && output.status.success()
+    {
+        let hash = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+        return Some(hash);
     }
 
     None
@@ -121,19 +121,19 @@ pub fn history_up_to_commit(commit: &str) -> Vec<Commit> {
         .arg(commit)
         .output();
 
-    if let Ok(output) = output {
-        if output.status.success() {
-            let commits: Vec<Commit> = String::from_utf8_lossy(&output.stdout)
-                .lines()
-                .filter_map(|line| {
-                    let pieces = line.split_once(' ')?;
-                    let hash = String::from(pieces.0);
-                    let title = String::from(pieces.1);
-                    Some(Commit { hash, title })
-                })
-                .collect();
-            return commits;
-        }
+    if let Ok(output) = output
+        && output.status.success()
+    {
+        let commits: Vec<Commit> = String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .filter_map(|line| {
+                let pieces = line.split_once(' ')?;
+                let hash = String::from(pieces.0);
+                let title = String::from(pieces.1);
+                Some(Commit { hash, title })
+            })
+            .collect();
+        return commits;
     }
 
     // Should never happen, because we always have at least one commit.

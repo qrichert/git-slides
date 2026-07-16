@@ -55,28 +55,28 @@ fn main() {
             "stop" => cmd.stop(),
             "next" | "n" => {
                 // `next` may be followed by `n`.
-                if let Some(n) = args.next() {
-                    if let Ok(n) = n.parse::<usize>() {
-                        return cmd.next(n);
-                    }
+                if let Some(n) = args.next()
+                    && let Ok(n) = n.parse::<usize>()
+                {
+                    return cmd.next(n);
                 }
                 cmd.next(1);
             }
             "previous" | "p" => {
                 // `previous` may be followed by `n`.
-                if let Some(n) = args.next() {
-                    if let Ok(n) = n.parse::<usize>() {
-                        return cmd.previous(n);
-                    }
+                if let Some(n) = args.next()
+                    && let Ok(n) = n.parse::<usize>()
+                {
+                    return cmd.previous(n);
                 }
                 cmd.previous(1);
             }
             "go" => {
                 // `go` must be followed by `n`.
-                if let Some(n) = args.next() {
-                    if let Ok(n) = n.parse::<usize>() {
-                        return cmd.go(n);
-                    }
+                if let Some(n) = args.next()
+                    && let Ok(n) = n.parse::<usize>()
+                {
+                    return cmd.go(n);
                 }
                 eprintln!("fatal: Need a slide number.");
                 process::exit(2);
