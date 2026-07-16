@@ -60,8 +60,8 @@ $ sudo install ./git-slides-* /usr/local/bin/git-slides
 ```console
 $ git clone https://github.com/qrichert/git-slides.git
 $ cd git-slides
-$ make build
-$ sudo make install
+$ just build
+$ sudo just install
 ```
 
 #### Through Cargo
