@@ -51,11 +51,12 @@ Install from [crates.io] with Cargo:
 cargo install git-slides
 ```
 
-Pre-built binaries for Linux and macOS are available on the
-[latest GitHub release].
+Pre-built binaries for Linux and macOS are available on the [latest
+GitHub release].
 
 [Documentation] is available on docs.rs.
 
 [crates.io]: https://crates.io/crates/git-slides
-[latest GitHub release]: https://github.com/qrichert/git-slides/releases/latest
+[latest GitHub release]:
+  https://github.com/qrichert/git-slides/releases/latest
 [Documentation]: https://docs.rs/git-slides
