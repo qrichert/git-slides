@@ -45,27 +45,17 @@ Options:
 
 ## Installation
 
-### Directly
-
-```console
-$ wget https://github.com/qrichert/git-slides/releases/download/X.X.X/git-slides-X.X.X-xxx
-$ sudo install ./git-slides-* /usr/local/bin/git-slides
-```
-
-### Manual Build
-
-#### System-wide
-
-```console
-$ git clone https://github.com/qrichert/git-slides.git
-$ cd git-slides
-$ just build
-$ sudo just install
-```
-
-#### Through Cargo
+Install from [crates.io] with Cargo:
 
 ```shell
 cargo install git-slides
-cargo install --git https://github.com/qrichert/git-slides.git
 ```
+
+Pre-built binaries for Linux and macOS are available on the
+[latest GitHub release].
+
+[Documentation] is available on docs.rs.
+
+[crates.io]: https://crates.io/crates/git-slides
+[latest GitHub release]: https://github.com/qrichert/git-slides/releases/latest
+[Documentation]: https://docs.rs/git-slides

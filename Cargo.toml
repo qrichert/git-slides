@@ -7,8 +7,8 @@ description = "Navigate through Git commits like presentation slides."
 license = "GPL-3.0-or-later"
 repository = "https://github.com/qrichert/git-slides.git"
 readme = "README.md"
-keywords = ["git", "presentation", "cli"]
-categories = ["command-line-utilities"]
+keywords = ["git", "presentation", "slides", "slideshow", "training"]
+categories = ["command-line-utilities", "development-tools"]
 
 [profile.release]
 codegen-units = 1

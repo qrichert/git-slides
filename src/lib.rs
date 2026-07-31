@@ -14,4 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Navigate a commit history as a presentation slide deck.
+//!
+//! Git presentation support behind the `git-slides` CLI.
+
 pub mod git;
