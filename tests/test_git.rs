@@ -81,7 +81,7 @@ fn history_up_to_invalid_commit_is_empty() {
     assert!(history.is_empty());
 }
 
-#[cfg(unix)]
+#[cfg(target_os = "linux")]
 #[test]
 fn find_git_directory_preserves_non_utf8_path() {
     use std::ffi::OsString;
@@ -99,8 +99,11 @@ fn find_git_directory_preserves_non_utf8_path() {
     let nested_dir = dir.join("nested");
     fs::create_dir(&nested_dir).unwrap();
 
-    let git_dir = find_git_directory_from(&nested_dir).unwrap();
+    let git_dir = find_git_directory_from(&nested_dir);
+    // GitHub Actions' cache glob cannot traverse this non-UTF-8 path.
+    fs::remove_dir_all(&dir).unwrap();
 
+    let git_dir = git_dir.unwrap();
     assert!(git_dir.is_absolute());
     assert_eq!(git_dir, dir.join(".git"));
 }
