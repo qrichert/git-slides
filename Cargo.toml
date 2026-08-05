@@ -1,6 +1,6 @@
 [package]
 name = "git-slides"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2024"
 authors = ["Quentin Richert <noreply@richert.co>"]
 description = "Navigate through Git commits like presentation slides."

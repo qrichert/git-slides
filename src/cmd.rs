@@ -46,6 +46,11 @@ impl Cmd {
     }
 
     pub fn start(&self, ref_: Option<String>) {
+        if self.is_presentation_started() {
+            eprintln!("error: A presentation is already in progress. Run 'stop' first.");
+            process::exit(1);
+        }
+
         if !git::is_working_directory_clean() {
             eprintln!("error: Working directory contains uncommitted changes.");
             process::exit(1);

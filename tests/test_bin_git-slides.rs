@@ -138,6 +138,40 @@ fn start_regular() {
 }
 
 #[test]
+fn start_when_presentation_is_already_started() {
+    let dir = git::init("start_when_presentation_is_already_started");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+    git::commit(&dir, "Slide 3");
+
+    let store_file = dir.join(".git/git-slides");
+
+    let output = run(&dir, &["start"]);
+    assert_eq!(output.exit_code, 0);
+    assert_eq!(git::status(&dir), "Slide 1");
+
+    let initial_store = fs::read_to_string(&store_file).unwrap();
+
+    let output = run(&dir, &["start"]);
+
+    assert_eq!(output.exit_code, 1);
+    assert!(output.stdout.is_empty());
+    assert_eq!(
+        output.stderr,
+        "error: A presentation is already in progress. Run 'stop' first.\n"
+    );
+    assert_eq!(fs::read_to_string(&store_file).unwrap(), initial_store);
+    assert_eq!(git::status(&dir), "Slide 1");
+
+    let output = run(&dir, &["stop"]);
+
+    assert_eq!(output.exit_code, 0);
+    assert!(output.stdout.contains("Going back to branch 'main'.\n"));
+    assert_eq!(git::status(&dir), "Slide 3");
+    assert!(!store_file.is_file());
+}
+
+#[test]
 fn start_shows_status() {
     let dir = git::init("start_shows_status");
     git::commit(&dir, "Slide 1");
