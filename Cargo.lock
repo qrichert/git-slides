@@ -11,6 +11,6 @@ dependencies = [
 
 [[package]]
 name = "lessify"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89e0f6ba27dc2612e7309ca5911aed706dca0afe47f14a4da6ed2c35bf161df0"
+checksum = "76f085128bedce805586967170ca915ac639b52cf67b508ac898e8207cc88216"
