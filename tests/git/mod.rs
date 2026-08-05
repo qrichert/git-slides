@@ -19,10 +19,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{self, Command, Stdio};
 
-const TMP_DIR: &str = env!("CARGO_TARGET_TMPDIR");
-
 pub fn init(dir: &str) -> PathBuf {
-    let dir = PathBuf::from(TMP_DIR).join(dir);
+    let dir = env::temp_dir()
+        .canonicalize()
+        .unwrap()
+        .join(format!("git-slides-{dir}-{}", process::id()));
     init_at(dir)
 }
 
@@ -33,7 +34,7 @@ pub fn init_at(dir: PathBuf) -> PathBuf {
     }
     fs::create_dir(&dir).unwrap();
 
-    Command::new("git")
+    let status = Command::new("git")
         .arg("init")
         .arg("--initial-branch=main")
         .current_dir(&dir)
@@ -42,8 +43,9 @@ pub fn init_at(dir: PathBuf) -> PathBuf {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+    assert!(status.success());
 
-    Command::new("git")
+    let status = Command::new("git")
         .arg("config")
         .arg("--local")
         .arg("user.name")
@@ -54,8 +56,9 @@ pub fn init_at(dir: PathBuf) -> PathBuf {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+    assert!(status.success());
 
-    Command::new("git")
+    let status = Command::new("git")
         .arg("config")
         .arg("--local")
         .arg("user.email")
@@ -66,6 +69,7 @@ pub fn init_at(dir: PathBuf) -> PathBuf {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+    assert!(status.success());
 
     dir
 }
@@ -180,7 +184,7 @@ pub fn directory(dir: &Path) -> PathBuf {
 }
 
 pub fn commit(dir: &Path, message: &str) {
-    Command::new("git")
+    let status = Command::new("git")
         .arg("commit")
         .arg("--allow-empty")
         .arg("--message")
@@ -191,6 +195,8 @@ pub fn commit(dir: &Path, message: &str) {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+
+    assert!(status.success());
 }
 
 pub fn status(dir: &Path) -> String {
@@ -209,7 +215,7 @@ pub fn status(dir: &Path) -> String {
 }
 
 pub fn checkout(dir: &Path, ref_: &str) {
-    Command::new("git")
+    let status = Command::new("git")
         .arg("checkout")
         .arg(ref_)
         .current_dir(dir)
@@ -218,10 +224,12 @@ pub fn checkout(dir: &Path, ref_: &str) {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+
+    assert!(status.success());
 }
 
 pub fn add(dir: &Path, file: &Path) {
-    Command::new("git")
+    let status = Command::new("git")
         .arg("add")
         .arg(file)
         .current_dir(dir)
@@ -230,6 +238,8 @@ pub fn add(dir: &Path, file: &Path) {
         .stderr(Stdio::null())
         .status()
         .unwrap();
+
+    assert!(status.success());
 }
 
 pub fn has_stashed_changes(dir: &Path) -> bool {

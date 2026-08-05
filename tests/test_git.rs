@@ -26,6 +26,16 @@ use git_slides::git::{find_git_directory, history_up_to_commit};
 
 static CURRENT_DIRECTORY_LOCK: Mutex<()> = Mutex::new(());
 
+#[test]
+fn test_repositories_are_outside_project_repository() {
+    let dir = git::init("test_repositories_are_outside_project_repository");
+
+    // If concurrent setup temporarily removes a fixture's `.git`, Git
+    // searches parent directories. Keep fixtures outside the project to
+    // protect its repository.
+    assert!(!dir.starts_with(env!("CARGO_MANIFEST_DIR")));
+}
+
 fn find_git_directory_from(dir: &Path) -> Option<PathBuf> {
     let _lock = CURRENT_DIRECTORY_LOCK.lock().unwrap();
     let initial_dir = env::current_dir().unwrap();
@@ -94,7 +104,10 @@ fn find_git_directory_preserves_non_utf8_path() {
     .into_bytes();
     name.push(0xff);
 
-    let dir = PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join(OsString::from_vec(name));
+    let dir = env::temp_dir()
+        .canonicalize()
+        .unwrap()
+        .join(OsString::from_vec(name));
     let dir = git::init_at(dir);
     let nested_dir = dir.join("nested");
     fs::create_dir(&nested_dir).unwrap();
