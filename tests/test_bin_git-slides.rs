@@ -118,6 +118,23 @@ fn not_a_git_directory() {
 }
 
 #[test]
+fn start_in_bare_repository() {
+    let dir = git::init_bare("start_in_bare_repository");
+
+    let output = run(&dir, &["start"]);
+    let store_file_created = dir.join("git-slides").is_file();
+
+    git::remove_bare(&dir);
+
+    assert_eq!(output.exit_code, 1);
+    assert_eq!(
+        output.stderr,
+        "fatal: Not a git repository (or any of the parent directories): .git\n"
+    );
+    assert!(!store_file_created);
+}
+
+#[test]
 fn start_regular() {
     let dir = git::init("start_regular");
     git::commit(&dir, "Slide 1");
@@ -135,6 +152,44 @@ fn start_regular() {
 
     assert_eq!(git::status(&dir), "Slide 1"); // Goes to first slide.
     assert!(store_file.is_file()); // Store file created.
+}
+
+#[test]
+fn start_and_stop_in_worktree() {
+    let dir = git::init("start_and_stop_in_worktree");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+    git::commit(&dir, "Slide 3");
+
+    let worktree = git::add_worktree(&dir, "worktree");
+    let git_file_exists = worktree.join(".git").is_file();
+    let store_file = git::directory(&worktree).join("git-slides");
+    let common_store_file = dir.join(".git/git-slides");
+
+    let start_output = run(&worktree, &["start"]);
+    let slide_after_start = git::status(&worktree);
+    let store_file_created = store_file.is_file();
+    let common_store_file_created = common_store_file.is_file();
+
+    let stop_output = run(&worktree, &["stop"]);
+    let slide_after_stop = git::status(&worktree);
+    let store_file_removed = !store_file.is_file();
+
+    git::remove_worktree(&dir, &worktree);
+
+    assert!(git_file_exists);
+    assert_eq!(start_output.exit_code, 0);
+    assert_eq!(slide_after_start, "Slide 1");
+    assert!(store_file_created);
+    assert!(!common_store_file_created);
+    assert_eq!(stop_output.exit_code, 0);
+    assert!(
+        stop_output
+            .stdout
+            .contains("Going back to branch 'worktree'.\n")
+    );
+    assert_eq!(slide_after_stop, "Slide 3");
+    assert!(store_file_removed);
 }
 
 #[test]

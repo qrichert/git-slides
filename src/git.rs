@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::env;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -36,19 +35,60 @@ pub fn is_git_in_path() -> bool {
 
 #[must_use]
 pub fn find_git_directory() -> Option<PathBuf> {
-    let mut current_dir = env::current_dir().ok()?;
+    let mut output = Command::new("git")
+        .arg("rev-parse")
+        .arg("--is-bare-repository")
+        .output()
+        .ok()?;
 
-    loop {
-        let git_dir = current_dir.join(".git");
-        if git_dir.is_dir() {
-            return Some(git_dir);
-        }
-        if !current_dir.pop() {
-            break;
-        }
+    if !output.status.success() {
+        return None;
     }
 
-    None
+    strip_git_line_ending(&mut output.stdout);
+    if output.stdout != b"false" {
+        return None;
+    }
+
+    let mut output = Command::new("git")
+        .arg("rev-parse")
+        .arg("--absolute-git-dir")
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    strip_git_line_ending(&mut output.stdout);
+    if output.stdout.is_empty() {
+        return None;
+    }
+
+    #[cfg(unix)]
+    let git_dir = {
+        use std::ffi::OsString;
+        use std::os::unix::ffi::OsStringExt as _;
+
+        OsString::from_vec(output.stdout)
+    };
+
+    #[cfg(not(unix))]
+    let git_dir = String::from_utf8(output.stdout).ok()?;
+
+    Some(PathBuf::from(git_dir))
+}
+
+/// Remove line ending from `git rev-parse` output.
+fn strip_git_line_ending(output: &mut Vec<u8>) {
+    if output.last() == Some(&b'\n') {
+        _ = output.pop();
+    }
+
+    #[cfg(windows)]
+    if output.last() == Some(&b'\r') {
+        _ = output.pop();
+    }
 }
 
 #[must_use]
