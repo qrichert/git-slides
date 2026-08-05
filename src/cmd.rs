@@ -282,10 +282,17 @@ impl Cmd {
         // This function is expensive, and is called multiple times.
         // Calling it multiple times simplifies the API a lot, so we
         // cache the result instead of changing the API.
-        self.history.get_or_init(|| {
+        let history = self.history.get_or_init(|| {
             let hash = self.get_presentation_head_commit_hash();
             git::history_up_to_commit(&hash)
-        })
+        });
+
+        if history.is_empty() {
+            eprintln!("error: No slides in presentation.");
+            process::exit(1);
+        }
+
+        history
     }
 
     fn get_presentation_head_commit_hash(&self) -> String {

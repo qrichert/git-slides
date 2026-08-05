@@ -960,6 +960,28 @@ fn status_error_getting_current_commit() {
 }
 
 #[test]
+fn all_methods_requiring_history_error_getting_empty_history() {
+    let dir = git::init("all_methods_requiring_history_error_getting_empty_history");
+    git::commit(&dir, "Slide 1");
+
+    run(&dir, &["start"]);
+    fs::write(dir.join(".git/git-slides"), "main:invalid\n").unwrap();
+
+    for args in [
+        &["next"][..],
+        &["previous"],
+        &["go", "1"],
+        &["status"],
+        &["list"],
+    ] {
+        let output = run(&dir, args);
+
+        assert_eq!(output.exit_code, 1);
+        assert_eq!(output.stderr, "error: No slides in presentation.\n");
+    }
+}
+
+#[test]
 fn list() {
     let dir = git::init("list");
     git::commit(&dir, "Slide 1");
