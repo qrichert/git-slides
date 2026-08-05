@@ -60,3 +60,15 @@ GitHub release].
 [latest GitHub release]:
   https://github.com/qrichert/git-slides/releases/latest
 [Documentation]: https://docs.rs/git-slides
+
+## Acknowledgements
+
+_2026-08-05_: Stumbled upon [gelisam/git-slides], almost exactly two
+years after starting this project. API looks surprisingly similar, which
+is a good sign for us I think. This project has nice edit features we
+don't have and I'm very tempted to steal those ideas for a future
+release.
+
+<!-- Edit: Stolen. -->
+
+[gelisam/git-slides]: https://github.com/gelisam/git-slides
