@@ -453,6 +453,29 @@ fn next_with_offset() {
 }
 
 #[test]
+fn next_with_maximum_offset() {
+    let dir = git::init("next_with_maximum_offset");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+    git::commit(&dir, "Slide 3");
+    git::commit(&dir, "Slide 4");
+
+    run(&dir, &["start"]);
+    assert_eq!(git::status(&dir), "Slide 1");
+
+    let offset = usize::MAX.to_string();
+    let output = run(&dir, &["next", &offset]);
+
+    assert_eq!(output.exit_code, 0);
+    assert_eq!(git::status(&dir), "Slide 4");
+    assert!(
+        output
+            .stdout
+            .contains("You've reached the end of the presentation.\n")
+    );
+}
+
+#[test]
 fn next_with_bad_offset() {
     let dir = git::init("next_with_bad_offset");
     git::commit(&dir, "Slide 1");

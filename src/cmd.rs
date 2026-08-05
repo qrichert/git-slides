@@ -114,7 +114,7 @@ impl Cmd {
         let commits = self.get_history();
         let n = self.get_index_of_current_commit();
 
-        let n = n + 1 + offset;
+        let n = n.saturating_add(1).saturating_add(offset);
 
         if n >= commits.len() {
             println!("You've reached the end of the presentation.");
