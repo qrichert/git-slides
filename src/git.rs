@@ -56,13 +56,19 @@ pub fn find_git_directory() -> Option<PathBuf> {
         .output()
         .ok()?;
 
-    if !output.status.success() {
-        return None;
+    #[cfg(not(tarpaulin_include))] // Cannot fail after Git identified a non-bare repository.
+    {
+        if !output.status.success() {
+            return None;
+        }
     }
 
     strip_git_line_ending(&mut output.stdout);
-    if output.stdout.is_empty() {
-        return None;
+    #[cfg(not(tarpaulin_include))] // Git always prints the absolute directory on success.
+    {
+        if output.stdout.is_empty() {
+            return None;
+        }
     }
 
     #[cfg(unix)]
@@ -149,7 +155,6 @@ pub fn ref_to_commit_hash(ref_: &str) -> Option<String> {
     None
 }
 
-#[cfg(not(tarpaulin_include))] // Does not ignore '(return) Vec::new()'.
 #[must_use]
 pub fn history_up_to_commit(commit: &str) -> Vec<Commit> {
     let output = Command::new("git")
@@ -180,7 +185,6 @@ pub fn history_up_to_commit(commit: &str) -> Vec<Commit> {
     Vec::new()
 }
 
-#[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
 #[must_use]
 pub fn checkout(commit: &str) -> bool {
     let status = Command::new("git")
@@ -194,7 +198,6 @@ pub fn checkout(commit: &str) -> bool {
     status.is_ok_and(|status| status.success())
 }
 
-#[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
 #[must_use]
 pub fn is_working_directory_clean() -> bool {
     let output = Command::new("git")
@@ -206,7 +209,6 @@ pub fn is_working_directory_clean() -> bool {
     output.is_ok_and(|output| String::from_utf8_lossy(&output.stdout).trim().is_empty())
 }
 
-#[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
 #[must_use]
 pub fn stash() -> bool {
     let status = Command::new("git")

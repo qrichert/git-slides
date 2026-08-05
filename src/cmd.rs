@@ -71,12 +71,9 @@ impl Cmd {
         let branch_name = git::current_branch().unwrap_or_default();
 
         let store_file = self.store_file();
-        #[cfg(not(tarpaulin_include))]
-        {
-            if fs::write(store_file, format!("{branch_name}:{commit_hash}\n")).is_err() {
-                eprintln!("error: Cannot write '.git/{STORE_FILE}'. Aborting.");
-                process::exit(1);
-            }
+        if fs::write(store_file, format!("{branch_name}:{commit_hash}\n")).is_err() {
+            eprintln!("error: Cannot write '.git/{STORE_FILE}'. Aborting.");
+            process::exit(1);
         }
 
         println!("Presentation started at {commit_hash}.");
@@ -102,7 +99,7 @@ impl Cmd {
         }
 
         let store_file = self.store_file();
-        #[cfg(not(tarpaulin_include))]
+        #[cfg(not(tarpaulin_include))] // Requires permission-dependent filesystem manipulation.
         {
             if fs::remove_file(store_file).is_err() {
                 eprintln!("error: Cannot remove '.git/{STORE_FILE}'. Aborting.");
@@ -317,7 +314,6 @@ impl Cmd {
         }
     }
 
-    #[cfg(not(tarpaulin_include))]
     fn read_store_file(&self) -> String {
         let store_file = self.store_file();
         let Ok(store) = fs::read_to_string(store_file) else {

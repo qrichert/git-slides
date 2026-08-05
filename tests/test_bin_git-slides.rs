@@ -155,6 +155,22 @@ fn start_regular() {
 }
 
 #[test]
+fn start_error_writing_store_file() {
+    let dir = git::init("start_error_writing_store_file");
+    git::commit(&dir, "Slide 1");
+
+    fs::create_dir(dir.join(".git/git-slides")).unwrap();
+
+    let output = run(&dir, &["start"]);
+
+    assert_eq!(output.exit_code, 1);
+    assert_eq!(
+        output.stderr,
+        "error: Cannot write '.git/git-slides'. Aborting.\n"
+    );
+}
+
+#[test]
 fn start_and_stop_in_worktree() {
     let dir = git::init("start_and_stop_in_worktree");
     git::commit(&dir, "Slide 1");
@@ -313,6 +329,23 @@ fn start_in_repo_without_commits() {
     assert_eq!(
         output.stderr,
         "error: No HEAD commit. Please provide a valid ref.\n"
+    );
+}
+
+#[test]
+fn status_error_reading_store_file() {
+    let dir = git::init("status_error_reading_store_file");
+    git::commit(&dir, "Slide 1");
+
+    run(&dir, &["start"]);
+    fs::write(dir.join(".git/git-slides"), [0xff]).unwrap();
+
+    let output = run(&dir, &["status"]);
+
+    assert_eq!(output.exit_code, 1);
+    assert_eq!(
+        output.stderr,
+        "error: Cannot read '.git/git-slides'. Aborting.\n"
     );
 }
 

@@ -22,7 +22,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
-use git_slides::git::find_git_directory;
+use git_slides::git::{find_git_directory, history_up_to_commit};
 
 static CURRENT_DIRECTORY_LOCK: Mutex<()> = Mutex::new(());
 
@@ -35,6 +35,17 @@ fn find_git_directory_from(dir: &Path) -> Option<PathBuf> {
     env::set_current_dir(initial_dir).unwrap();
 
     git_dir
+}
+
+fn history_up_to_commit_from(dir: &Path, commit: &str) -> Vec<git_slides::git::Commit> {
+    let _lock = CURRENT_DIRECTORY_LOCK.lock().unwrap();
+    let initial_dir = env::current_dir().unwrap();
+
+    env::set_current_dir(dir).unwrap();
+    let history = history_up_to_commit(commit);
+    env::set_current_dir(initial_dir).unwrap();
+
+    history
 }
 
 #[test]
@@ -58,6 +69,16 @@ fn find_git_directory_is_absolute_from_nested_directory() {
 
     assert!(git_dir.is_absolute());
     assert_eq!(git_dir, dir.join(".git"));
+}
+
+#[test]
+fn history_up_to_invalid_commit_is_empty() {
+    let dir = git::init("history_up_to_invalid_commit_is_empty");
+    git::commit(&dir, "Slide 1");
+
+    let history = history_up_to_commit_from(&dir, "invalid");
+
+    assert!(history.is_empty());
 }
 
 #[cfg(unix)]
