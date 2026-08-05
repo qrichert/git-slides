@@ -191,11 +191,7 @@ pub fn checkout(commit: &str) -> bool {
         .stderr(Stdio::null())
         .status();
 
-    let Ok(status) = status else {
-        return false;
-    };
-
-    status.success()
+    status.is_ok_and(|status| status.success())
 }
 
 #[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
@@ -207,11 +203,7 @@ pub fn is_working_directory_clean() -> bool {
         .arg("--porcelain")
         .output();
 
-    let Ok(output) = output else {
-        return false;
-    };
-
-    String::from_utf8_lossy(&output.stdout).trim().is_empty()
+    output.is_ok_and(|output| String::from_utf8_lossy(&output.stdout).trim().is_empty())
 }
 
 #[cfg(not(tarpaulin_include))] // Does not ignore 'return false'.
@@ -224,9 +216,5 @@ pub fn stash() -> bool {
         .stderr(Stdio::null())
         .status();
 
-    let Ok(status) = status else {
-        return false;
-    };
-
-    status.success()
+    status.is_ok_and(|status| status.success())
 }
