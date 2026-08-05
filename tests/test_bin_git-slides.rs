@@ -453,6 +453,23 @@ fn next_with_offset() {
 }
 
 #[test]
+fn next_with_bad_offset() {
+    let dir = git::init("next_with_bad_offset");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+
+    run(&dir, &["start"]);
+    assert_eq!(git::status(&dir), "Slide 1");
+
+    let output = run(&dir, &["next", "foo"]);
+
+    assert_eq!(output.exit_code, 2);
+    assert!(output.stdout.is_empty());
+    assert_eq!(output.stderr, "fatal: Need a slide number.\n");
+    assert_eq!(git::status(&dir), "Slide 1");
+}
+
+#[test]
 fn next_with_overlow() {
     let dir = git::init("next_with_overflow");
     git::commit(&dir, "Slide 1");
@@ -571,6 +588,24 @@ fn previous_with_offset() {
             .stdout
             .contains("You're at the start of the presentation.\n")
     );
+}
+
+#[test]
+fn previous_with_bad_offset() {
+    let dir = git::init("previous_with_bad_offset");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+
+    run(&dir, &["start"]);
+    run(&dir, &["go", "2"]);
+    assert_eq!(git::status(&dir), "Slide 2");
+
+    let output = run(&dir, &["previous", "bar"]);
+
+    assert_eq!(output.exit_code, 2);
+    assert!(output.stdout.is_empty());
+    assert_eq!(output.stderr, "fatal: Need a slide number.\n");
+    assert_eq!(git::status(&dir), "Slide 2");
 }
 
 #[test]
