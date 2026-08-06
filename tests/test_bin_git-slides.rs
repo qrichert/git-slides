@@ -876,6 +876,7 @@ fn status_full() {
     assert!(output.stdout.contains("2/3"));
     assert!(output.stdout.contains("3/3"));
     assert!(output.stdout.contains("(End)"));
+    assert!(!output.stdout.contains('\x1b'));
 }
 
 #[test]
@@ -1055,6 +1056,7 @@ fn list() {
     assert!(output.stdout.contains("* 1/3"));
     assert!(output.stdout.contains("2/3"));
     assert!(output.stdout.contains("3/3"));
+    assert!(!output.stdout.contains('\x1b'));
 }
 
 #[test]

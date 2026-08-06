@@ -26,11 +26,9 @@ use lessify::Pager;
 
 use git_slides::git::{self, Commit};
 
-const STORE_FILE: &str = env!("CARGO_BIN_NAME");
+use crate::color::{FAINT, RESET, YELLOW, maybe_color};
 
-const COLOR_RESET: &str = "\x1b[m";
-const COLOR_FAINT: &str = "\x1b[2m";
-const COLOR_YELLOW: &str = "\x1b[33m";
+const STORE_FILE: &str = env!("CARGO_BIN_NAME");
 
 pub struct Cmd {
     git_dir: PathBuf,
@@ -174,11 +172,15 @@ impl Cmd {
 
         let slide_number_padding = history.len().to_string().len();
 
+        let color_reset = maybe_color(RESET);
+        let color_faint = maybe_color(FAINT);
+        let color_yellow = maybe_color(YELLOW);
+
         // Acquire the lock once (instead of on every call to `print!`).
         let mut stdout = io::stdout().lock();
 
         if n.checked_sub(SHOW_N_PREVIOUS).is_none() {
-            _ = writeln!(stdout, "  {COLOR_FAINT}(Start){COLOR_RESET}");
+            _ = writeln!(stdout, "  {color_faint}(Start){color_reset}");
         }
 
         for i in display_from..=display_to {
@@ -193,7 +195,7 @@ impl Cmd {
             if i < n {
                 _ = writeln!(
                     stdout,
-                    "{COLOR_FAINT}{:>slide_number_padding$}/{} {} {title}{COLOR_RESET}",
+                    "{color_faint}{:>slide_number_padding$}/{} {} {title}{color_reset}",
                     i + 1,
                     history.len(),
                     &hash[..7],
@@ -201,7 +203,7 @@ impl Cmd {
             } else {
                 _ = writeln!(
                     stdout,
-                    "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
+                    "{:>slide_number_padding$}/{} {color_yellow}{}{color_reset} {title}",
                     i + 1,
                     history.len(),
                     &hash[..7],
@@ -210,7 +212,7 @@ impl Cmd {
         }
 
         if n + SHOW_N_NEXT > history.len() - 1 {
-            _ = writeln!(stdout, "  {COLOR_FAINT}(End){COLOR_RESET}");
+            _ = writeln!(stdout, "  {color_faint}(End){color_reset}");
         }
     }
 
@@ -221,6 +223,9 @@ impl Cmd {
         let n = self.get_index_of_current_commit();
 
         let slide_number_padding = history.len().to_string().len();
+
+        let color_reset = maybe_color(RESET);
+        let color_yellow = maybe_color(YELLOW);
 
         // Pre-allocate a "best-guess" number of characters. Each line
         // includes padding, slide number, commit hash, title and color.
@@ -237,7 +242,7 @@ impl Cmd {
 
             _ = writeln!(
                 out,
-                "{:>slide_number_padding$}/{} {COLOR_YELLOW}{}{COLOR_RESET} {title}",
+                "{:>slide_number_padding$}/{} {color_yellow}{}{color_reset} {title}",
                 i + 1,
                 history.len(),
                 &hash[..7],
