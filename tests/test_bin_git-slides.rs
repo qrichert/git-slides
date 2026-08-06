@@ -747,6 +747,40 @@ fn stop_in_dirty_working_directory() {
 }
 
 #[test]
+fn stop_reports_failed_restore_and_exits_nonzero() {
+    let dir = git::init("stop_reports_failed_restore_and_exits_nonzero");
+    git::commit(&dir, "Slide 1");
+    git::commit(&dir, "Slide 2");
+
+    // Slide 3 adds a tracked file; leaving it (checkout to an earlier
+    // slide) removes the file from the working tree.
+    let note = dir.join("note.txt");
+    _ = fs::write(&note, "tracked");
+    git::add(&dir, &note);
+    git::commit(&dir, "Slide 3");
+
+    let store_file = dir.join(".git/git-slides");
+
+    run(&dir, &["start"]);
+    assert_eq!(git::status(&dir), "Slide 1");
+    assert!(!note.is_file()); // Gone after leaving Slide 3.
+
+    // An untracked `note.txt` blocks the restore checkout back to `main`
+    // (Slide 3), and survives the stash (`--untracked-files=no`).
+    _ = fs::write(&note, "untracked");
+
+    let output = run(&dir, &["stop"]);
+
+    assert_eq!(output.exit_code, 1);
+    assert_eq!(
+        output.stderr,
+        "error: Could not checkout main.\nYou may still be on a slide commit.\n"
+    );
+    assert_eq!(git::status(&dir), "Slide 1"); // HEAD did not move.
+    assert!(!store_file.is_file()); // Store file removed regardless.
+}
+
+#[test]
 fn go_regular() {
     let dir = git::init("go_regular");
     git::commit(&dir, "Slide 1");

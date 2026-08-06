@@ -86,16 +86,24 @@ impl Cmd {
 
         println!("Presentation stopped.");
 
-        if let Some(initial_branch) = self.get_initial_branch() {
+        let target = if let Some(initial_branch) = self.get_initial_branch() {
             println!("Going back to branch '{initial_branch}'.");
-            _ = git::checkout(&initial_branch);
+            initial_branch
         } else {
             // The user was likely in detached mode when the presentation started.
             let head_commit = self.get_presentation_head_commit_hash();
             println!("Going back to commit {head_commit}.");
-            _ = git::checkout(&head_commit);
+            head_commit
+        };
+
+        let restored = git::checkout(&target);
+        if !restored {
+            eprintln!("error: Could not checkout {target}.");
+            eprintln!("You may still be on a slide commit.");
         }
 
+        // Drop store file regardless of above failure, at least we're
+        // out of presentation mode and back to normal Git.
         let store_file = self.store_file();
         #[cfg(not(tarpaulin_include))] // Requires permission-dependent filesystem manipulation.
         {
@@ -103,6 +111,10 @@ impl Cmd {
                 eprintln!("error: Cannot remove '.git/{STORE_FILE}'. Aborting.");
                 process::exit(1);
             }
+        }
+
+        if !restored {
+            process::exit(1);
         }
     }
 
