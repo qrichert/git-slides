@@ -61,6 +61,44 @@ GitHub release].
   https://github.com/qrichert/git-slides/releases/latest
 [Documentation]: https://docs.rs/git-slides
 
+## Plugins
+
+### Neovim
+
+Requires Neovim 0.10+. Install with lazy.nvim (the plugin lives in a
+subdirectory, which lazy.nvim supports through the runtimepath, see
+[folke/lazy.nvim#183](https://github.com/folke/lazy.nvim/issues/183)):
+
+<details>
+<summary>See the lazy.vim copy-pastable configuration.</summary>
+
+```lua
+{
+  "qrichert/git-slides",
+  event = "VeryLazy",
+  config = function(plugin)
+    vim.opt.rtp:append(plugin.dir .. "/plugins/nvim")
+    require("lazy.core.loader").packadd(plugin.dir .. "/plugins/nvim")
+    pcall(vim.cmd, "helptags " .. vim.fn.fnameescape(plugin.dir .. "/plugins/nvim/doc"))
+  end,
+}
+```
+
+</details>
+
+The default normal-mode shortcuts use the `<Leader>s` prefix:
+
+| Shortcut        | Action                                  |
+| --------------- | --------------------------------------- |
+| `<Leader>ss`    | Start                                   |
+| `<Leader>sS`    | Stop                                    |
+| `[N]<Leader>sn` | Go forward one or N slides              |
+| `[N]<Leader>sN` | Go back one or N slides (`p` works too) |
+| `{N}<Leader>sg` | Go to slide N                           |
+
+For commands, configuration, and remapping, see `:help git-slides`
+([`plugins/nvim/doc/git-slides.txt`](plugins/nvim/doc/git-slides.txt)).
+
 ## Acknowledgements
 
 _2026-08-05_: Stumbled upon [gelisam/git-slides], almost exactly two

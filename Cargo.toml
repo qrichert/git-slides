@@ -9,6 +9,8 @@ repository = "https://github.com/qrichert/git-slides.git"
 readme = "README.md"
 keywords = ["git", "presentation", "slides", "slideshow", "training"]
 categories = ["command-line-utilities", "development-tools"]
+# Editor integration ships in the repo but not in the crate.
+exclude = ["/plugins"]
 
 [profile.release]
 codegen-units = 1

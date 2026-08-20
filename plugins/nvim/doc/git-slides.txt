@@ -1,0 +1,117 @@
+*git-slides.txt*  Drive a git-slides presentation from Neovim.
+
+Part of git-slides <https://github.com/qrichert/git-slides>.
+License: MIT OR Apache-2.0. Requires Neovim 0.10+.
+
+==============================================================================
+CONTENTS                                                *git-slides-contents*
+
+  1. Intro ................................ |git-slides-intro|
+  2. Install .............................. |git-slides-install|
+  3. Commands ............................. |git-slides-commands|
+  4. Mappings ............................. |git-slides-mappings|
+  5. Config ............................... |git-slides-config|
+  6. Unsaved buffers ...................... |git-slides-unsaved|
+
+==============================================================================
+1. Intro                                                   *git-slides-intro*
+
+Navigate through Git commits like presentation slides, without leaving
+the editor. Every command runs the `git-slides` binary (which must be on
+your $PATH); navigation checks out a commit, so repository file buffers
+are reloaded afterward, or replaced by a placeholder when the checkout
+removed the file underneath them.
+
+==============================================================================
+2. Install                                               *git-slides-install*
+
+The plugin lives in a subdirectory of the repository, which lazy.nvim
+supports through the runtimepath (see folke/lazy.nvim#183). It loads on
+the VeryLazy event and then registers its own commands and maps, so a
+custom `g:git_slides_mapping_prefix`, `g:git_slides_no_default_mappings`,
+and any mapping you already set are all honored -- lazy.nvim's own `keys`
+triggers would instead overwrite them before the plugin is sourced: >lua
+
+{
+  "qrichert/git-slides",
+  event = "VeryLazy",
+  config = function(plugin)
+    vim.opt.rtp:append(plugin.dir .. "/plugins/nvim")
+    require("lazy.core.loader").packadd(plugin.dir .. "/plugins/nvim")
+    -- lazy.nvim only tags <plugin.dir>/doc, not the nested runtime, so
+    -- generate the help tags here or `:help git-slides` raises E149.
+    pcall(vim.cmd, "helptags " .. vim.fn.fnameescape(plugin.dir .. "/plugins/nvim/doc"))
+  end,
+}
+<
+==============================================================================
+3. Commands                                             *git-slides-commands*
+
+`-count` lets `:GitSlidesGo 3`, `:3GitSlidesGo`, and count-maps all
+work. Append `!` to force past the unsaved-buffer guard (see
+|git-slides-unsaved|).
+
+                                                            *:GitSlidesStart*
+:GitSlidesStart [ref]     Start the presentation (optionally at <ref>).
+                                                             *:GitSlidesStop*
+:GitSlidesStop            Stop.
+                                                             *:GitSlidesNext*
+:[N]GitSlidesNext         Go forward one or N slides.
+                                                         *:GitSlidesPrevious*
+:[N]GitSlidesPrevious     Go back one or N slides.
+                                                               *:GitSlidesGo*
+:{N}GitSlidesGo           Go to slide N (e.g. `:3GitSlidesGo`).
+                                                           *:GitSlidesStatus*
+:GitSlidesStatus          Show the current status.
+                                                             *:GitSlidesList*
+:GitSlidesList            List all slides.
+
+==============================================================================
+4. Mappings                                             *git-slides-mappings*
+
+Default normal-mode maps use the `<Leader>s` prefix (override with
+|g:git_slides_mapping_prefix|; disable with
+|g:git_slides_no_default_mappings|). An existing mapping is never
+overwritten.
+
+    <Leader>ss        Start
+    <Leader>sS        Stop
+    [N]<Leader>sn     Next (one or N slides)
+    [N]<Leader>sN     Previous (one or N slides)
+    [N]<Leader>sp     Previous (git-slides `p`)
+    {N}<Leader>sg     Go to slide N
+
+Remap through the <Plug> maps, e.g.: >vim
+    nmap <F2> <Plug>(GitSlidesNext)
+<
+The seven <Plug> maps are (GitSlidesStart), (GitSlidesStop),
+(GitSlidesNext), (GitSlidesPrevious), (GitSlidesGo), (GitSlidesStatus),
+and (GitSlidesList).
+
+==============================================================================
+5. Config                                                 *git-slides-config*
+
+                                                    *g:git_slides_executable*
+g:git_slides_executable
+        Path or name of the binary. Default "git-slides" (resolved on
+        $PATH). Read at call time.
+
+                                          *g:git_slides_no_default_mappings*
+g:git_slides_no_default_mappings
+        Set to 1 to skip the <Leader>s maps.
+
+                                               *g:git_slides_mapping_prefix*
+g:git_slides_mapping_prefix
+        Prefix for the default maps. Default "<Leader>s".
+
+==============================================================================
+6. Unsaved buffers                                       *git-slides-unsaved*
+
+Navigation aborts when the repository has modified buffers, since Git
+sees only on-disk state and a checkout would leave the editor showing
+the old slide. Save (`:w`) or discard (`:e!`) first, or append `!` to
+force. Forcing DISCARDS those buffers' unsaved edits and reloads them to
+the new slide. All repository file buffers are explicitly reloaded after
+navigation.
+
+vim:tw=78:ts=8:noet:ft=help:norl:

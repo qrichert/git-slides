@@ -1,0 +1,44 @@
+name: CI (plugins)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  nvim:
+    strategy:
+      # Don't cancel the other OSes when one leg fails.
+      fail-fast: false
+      matrix:
+        # macOS (case-insensitive FS) exercises the fileignorecase
+        # case-folding branch; Windows exercises the normsep backslash
+        # rewrite. Neither runs on Linux. `just` runs the recipe under sh
+        # on all three (Git Bash provides it on the Windows runner).
+        os:
+          - ubuntu-latest
+          - macos-latest
+          # - windows-latest -- Windows fails and I don't need it.
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Just
+        uses: taiki-e/install-action@just
+
+      # Pin the 0.10 floor: the plugin's nvim_buf_call reload is verified on
+      # newer Neovim, so this proves it still holds on the minimum version.
+      - name: Set up Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: v0.10.0
+
+      - name: Run plugin tests
+        run: just test-nvim

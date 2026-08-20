@@ -37,6 +37,10 @@ alias t := test
 test *args:
     cargo test --all-features -- {{ args }}
 
+# Run the headless Neovim plugin tests (needs Neovim 0.10+)
+test-nvim: build
+    PATH="$PWD/target/release:$PATH" nvim --headless -u NONE -l plugins/nvim/git-slides_test.lua
+
 # Build documentation
 doc:
     cargo doc --all-features --document-private-items
