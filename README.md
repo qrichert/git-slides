@@ -1,7 +1,7 @@
 # git-slides
 
 ![Crates.io License](https://img.shields.io/crates/l/git-slides)
-![GitHub Tag](https://img.shields.io/github/v/tag/qrichert/git-slides?sort=semver&filter=*.*.*&label=release)
+[![GitHub Tag](https://img.shields.io/github/v/tag/qrichert/git-slides?sort=semver&filter=*.*.*&label=release)](https://github.com/qrichert/git-slides/releases/latest)
 [![crates.io](https://img.shields.io/crates/d/git-slides?logo=rust&logoColor=white&color=orange)](https://crates.io/crates/git-slides)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/qrichert/git-slides/ci.yml?label=tests)](https://github.com/qrichert/git-slides/actions)
 
